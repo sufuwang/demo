@@ -15,9 +15,7 @@ server.on("request", (req: http.IncomingMessage, socket: Socket) => {
 
 server.on("upgrade", (req, socket) => {
 	const ws = new WebSocket(req, socket as Socket);
-	setInterval(() => {
-		ws.send(Date.now().toString());
-	}, 1000);
+	ws.send(Date.now().toString());
 });
 
 server.listen(3000);

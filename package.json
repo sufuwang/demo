@@ -5,8 +5,10 @@
   "main": "./backEnd/index.ts",
   "module": "esm",
   "scripts": {
-    "dev": "rollup -cw",
+    "watch": "rollup -cw",
+    "build": "rollup -c",
     "serve": "node ./dist/bundle.js",
+    "dev": "clear && npm run build && npm run serve",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

@@ -1,6 +1,7 @@
 import http from "http";
 import { Socket } from "net";
 import { secretKey, parsePayload, wrapPayload } from "./util";
+import fs from "fs";
 
 class WebSocket {
 	req: http.IncomingMessage;
@@ -28,7 +29,17 @@ class WebSocket {
 	receive() {
 		this.socket.on("data", (payload: Buffer) => {
 			const content = parsePayload(payload);
-			console.log("Message from client: ", content.slice(content.length - 1));
+			if (content.length === 0) {
+				console.info("等待后续帧, 当前帧大小: ", payload.length);
+				return;
+			}
+			console.info(
+				"输出帧, 当前帧大小: ",
+				payload.length,
+				", 输出负载大小: ",
+				content.length
+			);
+			fs.writeFile(`./${content.length}.log`, content, "utf8", () => null);
 		});
 	}
 	send(payload: string) {

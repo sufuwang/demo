@@ -1,6 +1,22 @@
 import { Buffer } from "buffer";
 import crypto from "crypto";
 import http from "http";
+import useWrapFrame from "./hooks/useWrapFrame";
+
+export const OPCODE = {
+	0: "CONTINUE",
+	1: "TEXT",
+	2: "BINARY",
+	8: "CLOSE",
+	9: "PING",
+	10: "PONG",
+	CONTINUE: "CONTINUE",
+	TEXT: "TEXT",
+	BINARY: "BINARY",
+	CLOSE: "CLOSE",
+	PING: "PING",
+	PONG: "PONG",
+};
 
 export const secretKey = (header: http.IncomingHttpHeaders) => {
 	const key = header["sec-websocket-key"];
@@ -11,9 +27,7 @@ export const secretKey = (header: http.IncomingHttpHeaders) => {
 		.digest("base64");
 };
 
-const parsePayloadWithMask = (payload: Buffer, maskStartIndex: number) => {
-	const mask = payload.slice(maskStartIndex, maskStartIndex + 4);
-	const data = payload.slice(maskStartIndex + 4);
+const parsePayloadWithMask = (mask: Buffer, data: Buffer) => {
 	const len = data.length;
 	const buffer = Buffer.alloc(len);
 	for (let i = 0; i < len; i++) {
@@ -21,21 +35,64 @@ const parsePayloadWithMask = (payload: Buffer, maskStartIndex: number) => {
 	}
 	return buffer.toString("utf8");
 };
-export const parsePayload = (payload: Buffer): string => {
-	const [f1, f2] = [...payload.slice(0, 2)].map((d) => d.toString(2));
-	const opcode = parseInt(f1.slice(4), 2);
-	const isMask = parseInt(f2.slice(0, 1), 2);
-	const len = parseInt(f2.slice(1), 2);
+const parseFlagFromPayload = (payload: Buffer) => {
+	const [f1, [maskCode, ...payloadLenCode]] = [...payload.slice(0, 2)].map(
+		(d) => d.toString(2).padStart(8, "0")
+	);
+	const opcode = OPCODE[parseInt(f1.slice(4), 2) as keyof typeof OPCODE];
+	const isWithMask = maskCode === "1";
+	const payloadLenFlag = parseInt(payloadLenCode.join(""), 2);
+	const payloadLenRange = [
+		1,
+		payloadLenFlag < 126 ? 2 : payloadLenFlag === 126 ? 4 : 10,
+	];
+	const maskLen = 4;
+	const totalPayloadLen =
+		payloadLenFlag >= 126
+			? parseInt(
+					[...payload.slice(2, payloadLenRange[1])]
+						.map((d) => d.toString(2).padStart(8, "0"))
+						.join(""),
+					2
+			  )
+			: payloadLenFlag;
+	const curPayload = payload.slice(payloadLenRange[1] + maskLen);
+	const curPayloadLen = curPayload.length;
+	return {
+		isFinal: totalPayloadLen === curPayloadLen,
+		opcode,
+		isWithMask,
+		mask: payload.slice(payloadLenRange[1], payloadLenRange[1] + maskLen),
+		curPayload,
+		totalPayloadLen,
+		curPayloadLen,
+		payloadLenFlag,
+		payloadLenRange,
+	};
+};
 
-	console.info(len);
-	if (len < 126) {
-		return parsePayloadWithMask(payload, 2);
-	} else if (len === 126) {
-		return parsePayloadWithMask(payload, 4);
-	} else if (len === 127) {
-		return parsePayloadWithMask(payload, 8);
+const Frame = useWrapFrame();
+export const parsePayload = (payload: Buffer): string => {
+	if (Frame.getIsWorking()) {
+		// 后续帧
+		Frame.push(payload);
+	} else {
+		// 第一个帧
+		const flag = parseFlagFromPayload(payload);
+		if (flag.opcode !== OPCODE.TEXT) {
+			console.info("OPCODE: ", flag.opcode);
+			return "";
+		}
+		Frame.setMask(flag.mask);
+		Frame.setLen(flag.totalPayloadLen);
+		Frame.push(flag.curPayload);
 	}
-	return "";
+	if (Frame.getIsWorking()) {
+		return "";
+	}
+	const str = parsePayloadWithMask(Frame.getMask(), Frame.getPayload());
+	Frame.clear();
+	return str;
 };
 
 export const wrapPayload = (payload: string): Buffer => {
