@@ -16,6 +16,7 @@ const useWrapFrame = () => {
 		STATE.isWorking = STATE.length > buffer.length;
 	};
 	const clear = () => {
+		STATE.mask = Buffer.alloc(0);
 		STATE.payload = Buffer.alloc(0);
 		STATE.length = Infinity;
 		STATE.isWorking = false;
