@@ -1,8 +1,19 @@
-const STATE = {
+import type { TypeFrameOPCODE } from "../util";
+
+interface STATE {
+	mask: Buffer;
+	payload: Buffer;
+	length: number;
+	isWorking: boolean;
+	type: TypeFrameOPCODE;
+}
+
+const STATE: STATE = {
 	mask: Buffer.alloc(0),
 	payload: Buffer.alloc(0),
 	length: Infinity,
 	isWorking: false,
+	type: "TEXT",
 };
 
 // 合并多个帧
@@ -42,6 +53,12 @@ const useWrapFrame = () => {
 		},
 		setLen(len: number) {
 			STATE.length = len;
+		},
+		getType() {
+			return STATE.type;
+		},
+		setType(type: TypeFrameOPCODE) {
+			STATE.type = type;
 		},
 	};
 };

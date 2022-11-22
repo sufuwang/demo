@@ -17,6 +17,21 @@ export const OPCODE = {
 	PING: "PING",
 	PONG: "PONG",
 };
+export interface TypeOPCODE {
+	0: "CONTINUE";
+	1: "TEXT";
+	2: "BINARY";
+	8: "CLOSE";
+	9: "PING";
+	10: "PONG";
+	CONTINUE: "CONTINUE";
+	TEXT: "TEXT";
+	BINARY: "BINARY";
+	CLOSE: "CLOSE";
+	PING: "PING";
+	PONG: "PONG";
+}
+export type TypeFrameOPCODE = TypeOPCODE["TEXT"] | TypeOPCODE["BINARY"];
 
 export const secretKey = (header: http.IncomingHttpHeaders) => {
 	const key = header["sec-websocket-key"];
@@ -27,19 +42,28 @@ export const secretKey = (header: http.IncomingHttpHeaders) => {
 		.digest("base64");
 };
 
-const parsePayloadWithMask = (mask: Buffer, data: Buffer) => {
-	const len = data.length;
-	const buffer = Buffer.alloc(len);
-	for (let i = 0; i < len; i++) {
-		buffer.writeUInt8(mask[i % 4] ^ data[i], i);
+const parsePayloadWithMask = (
+	mask: Buffer,
+	data: Buffer,
+	type: TypeFrameOPCODE
+) => {
+	console.info("type: ", type);
+	const buffer = [];
+	for (let i = 0; i < data.length; i++) {
+		buffer.push(mask[i % 4] ^ data[i]);
 	}
-	return buffer.toString("utf8");
+	if (type === "BINARY") {
+		return buffer.join("");
+	}
+	return Buffer.from(buffer).toString("utf8");
 };
 const parseFlagFromPayload = (payload: Buffer) => {
 	const [f1, [maskCode, ...payloadLenCode]] = [...payload.slice(0, 2)].map(
 		(d) => d.toString(2).padStart(8, "0")
 	);
-	const opcode = OPCODE[parseInt(f1.slice(4), 2) as keyof typeof OPCODE];
+	const opcode = OPCODE[
+		parseInt(f1.slice(4), 2) as keyof TypeOPCODE
+	] as TypeOPCODE[keyof TypeOPCODE];
 	const isWithMask = maskCode === "1";
 	const payloadLenFlag = parseInt(payloadLenCode.join(""), 2);
 	const payloadLenRange = [
@@ -79,10 +103,11 @@ export const parsePayload = (payload: Buffer): string => {
 	} else {
 		// 第一个帧
 		const flag = parseFlagFromPayload(payload);
-		if (flag.opcode !== OPCODE.TEXT) {
+		if (![OPCODE.TEXT, OPCODE.BINARY].includes(flag.opcode)) {
 			console.info("OPCODE: ", flag.opcode);
 			return "";
 		}
+		Frame.setType(flag.opcode as TypeFrameOPCODE);
 		Frame.setMask(flag.mask);
 		Frame.setLen(flag.totalPayloadLen);
 		Frame.push(flag.curPayload);
@@ -90,7 +115,11 @@ export const parsePayload = (payload: Buffer): string => {
 	if (Frame.getIsWorking()) {
 		return "";
 	}
-	const str = parsePayloadWithMask(Frame.getMask(), Frame.getPayload());
+	const str = parsePayloadWithMask(
+		Frame.getMask(),
+		Frame.getPayload(),
+		Frame.getType()
+	);
 	Frame.clear();
 	return str;
 };
