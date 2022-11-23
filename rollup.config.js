@@ -6,6 +6,7 @@ const { nodeResolve } = require('@rollup/plugin-node-resolve')
 module.exports = [
   {
     input: './public/index.ts',
+    treeshake: false,
     output: {
       file: path.resolve(__dirname, './public/dist/bundle.js'),
       // global: 弄个全局变量来接收

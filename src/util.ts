@@ -53,7 +53,8 @@ const parsePayloadWithMask = (
 		buffer.push(mask[i % 4] ^ data[i]);
 	}
 	if (type === "BINARY") {
-		return buffer.join("");
+		return Buffer.from(buffer);
+		// return buffer.join("");
 	}
 	return Buffer.from(buffer).toString("utf8");
 };
@@ -96,7 +97,7 @@ const parseFlagFromPayload = (payload: Buffer) => {
 };
 
 const Frame = useWrapFrame();
-export const parsePayload = (payload: Buffer): string => {
+export const parsePayload = (payload: Buffer): string | Buffer => {
 	if (Frame.getIsWorking()) {
 		// 后续帧
 		Frame.push(payload);
