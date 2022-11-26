@@ -1,0 +1,38 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./backEnd/index.ts",
+  "module": "esm",
+  "scripts": {
+    "watch": "rollup -cw",
+    "build": "rollup -c",
+    "serve": "node ./dist/bundle.js",
+    "dev": "clear && npm run build && npm run serve",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sufuwang/demo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sufuwang/demo/issues"
+  },
+  "homepage": "https://github.com/sufuwang/demo#readme",
+  "dependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "rollup": "^3.3.0",
+    "rollup-plugin-serve": "^2.0.1",
+    "rollup-plugin-typescript2": "^0.34.1",
+    "socket.io": "^4.5.4",
+    "typescript": "^4.8.4"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^23.0.2",
+    "@rollup/plugin-json": "^5.0.1",
+    "@types/node": "^18.11.9"
+  }
+}
