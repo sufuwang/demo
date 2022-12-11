@@ -1,0 +1,11 @@
+{
+  "apps": [
+    {
+      "name": "http1.1",
+      "script": "./dist/bundle.1.js"
+    }, {
+      "name": "http2",
+      "script": "./dist/bundle.2.js"
+    }
+  ]
+}
