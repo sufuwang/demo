@@ -1,9 +1,9 @@
 const getName = () => {
-  return ''
+  return 'null'
 };
 
 function getOption() {
-  return ''
+  return 'null'
 }
 
 console.info(getOption, getName)

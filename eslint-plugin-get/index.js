@@ -1,4 +1,4 @@
-const handle = (node, context) => {
+const handle = (node, {options, report}) => {
 
   const funcName = node.id ? node.id.name : node.parent.id.name
   const content = node.body.body
@@ -6,12 +6,14 @@ const handle = (node, context) => {
   const isGetFunc = funcName.startsWith('get')
   const notHasReturn = content.filter(d => d.type === 'ReturnStatement').length === 0
 
+  const [{content: returnContent}] = options
+
   if (isGetFunc && notHasReturn) {
-    context.report({
+    report({
       node,
       message: `"${funcName}" startWith "get", it must has return something`,
       fix(fixer) {
-        return fixer.replaceTextRange([node.range[1] - 1, node.range[1]], '  return \'\'\n}')
+        return fixer.replaceTextRange([node.range[1] - 1, node.range[1]], `  return \'${returnContent}\'\n}`)
       }
     })
   }

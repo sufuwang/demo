@@ -14,6 +14,6 @@ module.exports = {
     "sourceType": "module"
   },
   "rules": {
-    "get/getter-function-must-return": ["error"]
+    "get/getter-function-must-return": ["error", {content: 'null'}]
   }
 }
