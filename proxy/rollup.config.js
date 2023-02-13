@@ -1,6 +1,8 @@
 const path = require('path')
 const ts = require('rollup-plugin-typescript2')
 const { nodeResolve } = require('@rollup/plugin-node-resolve')
+const json = require('@rollup/plugin-json')
+const commonjs = require('@rollup/plugin-commonjs')
 
 module.exports = {
   input: './src/index.ts',
@@ -16,5 +18,7 @@ module.exports = {
     ts({
       tsconfig: path.resolve(__dirname, 'tsconfig.json')
     }),
+    json(),
+    commonjs(),
   ]
 }
