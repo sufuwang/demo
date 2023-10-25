@@ -1,0 +1,17 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pm2 start --watch",
+    "stop": "pm2 stop all",
+    "del": "pm2 delete all"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pm2": "^5.3.0"
+  }
+}

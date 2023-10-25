@@ -1,0 +1,17 @@
+version: '3'
+services:
+  mysql-container:
+    image: mysql
+    ports:
+      - '3306:3306'
+    environment:
+      - MYSQL_ROOT_PASSWORD=Wo123456
+    volumes:
+      - /Users/sufuwang/Downloads/Code/demo/volume/mysql:/var/lib/mysql
+  redis-container:
+    image: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - /Users/sufuwang/Downloads/Code/demo/volume/redis:/data
+  
