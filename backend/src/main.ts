@@ -7,11 +7,13 @@ import { InvokeRecordInterceptor } from './invoke-record.interceptor';
 import { UnLoginFilter } from './unLogin.filter';
 import { CustomFilter } from './custom.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
 
+  app.useStaticAssets('publics', { prefix: '/file' });
   app.useGlobalInterceptors(new FormatResponseInterceptor());
   app.useGlobalInterceptors(new InvokeRecordInterceptor());
   app.useGlobalPipes(new ValidationPipe());

@@ -9,6 +9,8 @@ import {
   ParseIntPipe,
   BadRequestException,
   HttpStatus,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { UserService, UserFilter } from './user.service';
 import { RegisterUserDto } from './dto/register.dto';
@@ -24,6 +26,10 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { UserDetail } from './vo/user-detail.vo';
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as path from 'path';
+import * as multer from 'multer';
+import * as fs from 'fs';
 
 @ApiTags('User Module')
 @Controller('user')
@@ -156,5 +162,38 @@ export class UserController {
       nickName,
       email,
     });
+  }
+
+  @Post('upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      dest: 'uploads',
+      limits: {
+        fileSize: 1024 * 1024 * 3,
+      },
+      fileFilter(req, file, callback) {
+        const extname = path.extname(file.originalname);
+        if (!['.png', '.jpeg'].includes(extname)) {
+          callback(new BadRequestException('只能上传图片'), false);
+          return;
+        }
+        callback(null, true);
+      },
+      storage: multer.diskStorage({
+        destination(req, file, callback) {
+          try {
+            fs.mkdirSync('publics');
+          } catch {}
+          callback(null, 'publics');
+        },
+        filename(req, file, callback) {
+          callback(null, file.originalname);
+        },
+      }),
+    }),
+  )
+  upload(@UploadedFile() file: Express.Multer.File) {
+    console.info('file:', file);
+    return file.path;
   }
 }

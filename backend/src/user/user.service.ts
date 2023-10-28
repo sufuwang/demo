@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Like, Repository } from 'typeorm';
+import { FindOperator, Like, Repository } from 'typeorm';
 import { RegisterUserDto } from './dto/register.dto';
 import { RedisService } from 'src/redis/redis.service';
 import { md5 } from '../utils/tools';
@@ -201,7 +201,7 @@ export class UserService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const condition: Partial<Record<keyof User, any>> = {};
+    const condition: Partial<Record<keyof User, FindOperator<any>>> = {};
     if (options.userName) {
       condition.userName = Like(`%${options.userName}%`);
     }
@@ -226,7 +226,6 @@ export class UserService {
       take: options.pageSize,
       where: condition,
     });
-    console.info('condition: ', condition, options);
     return { users, totalCount };
   }
 }

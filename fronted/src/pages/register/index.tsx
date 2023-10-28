@@ -1,5 +1,6 @@
 import { Button, Row, Col, Form, Input } from "antd";
 import { Fetch } from "../../utils/tools";
+import { useCallback, useEffect } from "react";
 
 type FieldType = {
 	UserName: string;
@@ -25,7 +26,7 @@ const tailFormItemLayout = {
 export default () => {
 	const [form] = Form.useForm<FieldType>();
 
-	const getCaptcha = async () => {
+	const getCaptcha = useCallback(async () => {
 		const { Captcha, ...values } = form.getFieldsValue();
 		const fields = Object.keys(values);
 		await form.validateFields(fields);
@@ -33,7 +34,18 @@ export default () => {
 			method: "GET",
 			data: { email: values.Email },
 		});
-	};
+		console.info("date: ", Date.now());
+	}, [form]);
+
+	useEffect(() => {
+		const event = new EventSource("http://localhost:3000/stream");
+		event.onmessage = (data: any) => {
+			console.info("data:", data);
+		};
+		return () => {
+			event.onmessage = null;
+		};
+	}, []);
 
 	const onFinish = (values: FieldType) => {
 		Fetch("http://localhost:3000/user/register", {
@@ -57,6 +69,7 @@ export default () => {
 			onFinish={onFinish}
 			autoComplete="off"
 		>
+			Date.now() = {Date.now()}
 			<Form.Item<FieldType>
 				label="UserName"
 				name="UserName"
