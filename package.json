@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "tdesign-vue-next": "^1.6.8",
     "vue": "^3.3.4"
   },
   "devDependencies": {
